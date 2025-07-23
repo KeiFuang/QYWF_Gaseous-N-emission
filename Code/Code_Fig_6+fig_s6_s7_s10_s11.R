@@ -1119,32 +1119,6 @@ datFUN<-function(x){c(mean=round(mean(na.omit(x)),3),
 datFUN(na.omit(dat$NH4_N[dat$soillayer=='O' & dat$treatment=='control']))
 datFUN(na.omit(dat$NO3_N[dat$soillayer=='O' & dat$treatment=='control']))
 
-
-
-
-
-
-(mean(na.omit(dat$EON[dat$soillayer=='O' & dat$treatment=='warmed']))-
-    mean(na.omit(dat$EON[dat$soillayer=='O' & dat$treatment=='control'])))/mean(na.omit(dat$EON[dat$soillayer=='O' & dat$treatment=='control']))
-
-
-(mean(na.omit(dat$EON[dat$soillayer=='0-10cm' & dat$treatment=='warmed']))-
-    mean(na.omit(dat$EON[dat$soillayer=='0-10cm' & dat$treatment=='control'])))/mean(na.omit(dat$EON[dat$soillayer=='0-10cm' & dat$treatment=='control']))
-
-(mean(na.omit(dat$MBN[dat$soillayer=='0-10cm' & dat$treatment=='warmed']))-
-    mean(na.omit(dat$MBN[dat$soillayer=='0-10cm' & dat$treatment=='control'])))/mean(na.omit(dat$MBN[dat$soillayer=='0-10cm' & dat$treatment=='control']))
-
-(mean(na.omit(dat$MBN[dat$soillayer=='O' & dat$treatment=='warmed']))-
-    mean(na.omit(dat$MBN[dat$soillayer=='O' & dat$treatment=='control'])))/mean(na.omit(dat$MBN[dat$soillayer=='O' & dat$treatment=='control']))
-
-(mean(na.omit(dat$AOB[dat$soillayer=='O' & dat$treatment=='warmed']))-
-    mean(na.omit(dat$AOB[dat$soillayer=='O' & dat$treatment=='control'])))/mean(na.omit(dat$AOB[dat$soillayer=='O' & dat$treatment=='control']))
-
-
-(mean(na.omit(dat$nirK[dat$soillayer=='0-10cm' & dat$treatment=='warmed']))-
-    mean(na.omit(dat$nirK[dat$soillayer=='0-10cm' & dat$treatment=='control'])))/mean(na.omit(dat$nirK[dat$soillayer=='0-10cm' & dat$treatment=='control']))
-
-
 dat$N_perM<-(dat$NH4_N+dat$NO3_N+dat$EON)/dat$MBN   
 dat$IN_ON<-(dat$NH4_N+dat$NO3_N)/dat$EON  
 dat$MBC_MBN<-dat$MBC/dat$MBN  
@@ -1246,7 +1220,7 @@ ggplot(dat, aes(factor(year), soil.water_dry*100, fill = treatment)) +
     legend.text = element_text(size = 12),
     legend.title = element_text(size = 12),
     plot.margin = unit(c(5, 5, 2, 2), 'mm'),
-    strip.background = element_rect(fill = alpha('grey',0.16), color = 'black'),
+    strip.background = element_rect(fill = scales::alpha('grey',0.16), color = 'black'),
     strip.text = element_text(colour = "black", size = 12, hjust = .5),
     strip.placement = "inside",
     strip.switch.pad.wrap = unit(1, "cm"))->pw;pw
@@ -1527,26 +1501,26 @@ ggsave("Fig_S6_Seasonal character of substrate+microbes_2019-2023_new1.pdf", fig
        device=cairo_pdf)
 
 ### Repeated ANOVA seperated by seasons
-summary(aov(soil.water_dry~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & dat$season=='June-August'),]))
-summary(aov(soil.water_dry~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm'  & dat$season=='June-August'),]))
+summary(aov(soil.water_dry~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & dat$season!='June-August'),]))
+summary(aov(soil.water_dry~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm'  & dat$season!='June-August'),]))
 
-summary(aov(NH4_N~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & dat$season=='June-August'),]))
-summary(aov(NH4_N~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & dat$season=='June-August'),]))
+summary(aov(NH4_N~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & dat$season!='June-August'),]))
+summary(aov(NH4_N~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & dat$season!='June-August'),]))
 
-summary(aov(NO3_N~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & dat$season=='June-August'),]))
-summary(aov(NO3_N~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & dat$season=='June-August'),]))
+summary(aov(NO3_N~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & dat$season!='June-August'),]))
+summary(aov(NO3_N~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & dat$season!='June-August'),]))
 
-summary(aov(EOC~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season=='June-August'),]))
-summary(aov(EOC~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC)& dat$season=='June-August'),]))
+summary(aov(EOC~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season!='June-August'),]))
+summary(aov(EOC~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC)& dat$season!='June-August'),]))
 
-summary(aov(EON~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season=='June-August'),]))
-summary(aov(EON~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(EON~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season!='June-August'),]))
+summary(aov(EON~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season!='June-August'),]))
 
-summary(aov(MBC~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season=='June-August'),]))
-summary(aov(MBC~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(MBC~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season!='June-August'),]))
+summary(aov(MBC~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season!='June-August'),]))
 
-summary(aov(MBN~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season=='June-August'),]))
-summary(aov(MBN~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC)  & dat$season=='June-August'),]))
+summary(aov(MBN~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC)  & dat$season!='June-August'),]))
+summary(aov(MBN~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season!='June-August'),]))
 
 unique(dat$treatment)
 p5<-ggplot(dat, aes(factor(year), log(AOA,10), fill = treatment)) +
@@ -1583,7 +1557,7 @@ p5<-ggplot(dat, aes(factor(year), log(AOA,10), fill = treatment)) +
     legend.text = element_text(size = 12),
     legend.title = element_text(size = 12),
     plot.margin = unit(c(5, 5, 2, 2), 'mm'),
-    strip.background = element_rect(fill = alpha('grey',0.16), color = 'black'),
+    strip.background = element_rect(fill = scales::alpha('grey',0.16), color = 'black'),
     strip.text = element_text(colour = "black", size = 12, hjust = .5),
     strip.switch.pad.wrap = unit(1, "cm"))+
   labs(x='Year',y=expression(atop(paste('AOA'),paste('(copies g'^-1,')'))));p5
@@ -1876,21 +1850,21 @@ ggsave("Fig_S7_Seasonal character of functional genes_2019-2023_new1.pdf", figur
 
 
 
-summary(aov(AOA~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season!='June-August'),]))
-summary(aov(AOB~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season!='June-August'),]))
-summary(aov(AOA_AOB~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season!='June-August' ),]))
+summary(aov(AOA~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(AOB~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(AOA_AOB~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season=='June-August' ),]))
 
-summary(aov(nirS~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season!='June-August'),]))
-summary(aov(nirK~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season!='June-August'),]))
-summary(aov(nirSK~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season!='June-August'),]))
-summary(aov(nosZ~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season!='June-August'),]))
+summary(aov(nirS~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(nirK~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(nirSK~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(nosZ~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='O' & !is.na(dat$MBC) & dat$season=='June-August'),]))
 
-summary(aov(AOA~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season!='June-August'),]))
-summary(aov(AOB~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season!='June-August'),]))
-summary(aov(AOA_AOB~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season!='June-August'),]))
-summary(aov(nirS~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season!='June-August'),]))
-summary(aov(nirK~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season!='June-August'),]))
-summary(aov(nosZ~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season!='June-August'),]))
+summary(aov(AOA~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(AOB~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(AOA_AOB~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(nirS~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(nirK~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season=='June-August'),]))
+summary(aov(nosZ~treatment*factor(Date)+Error(plot/Date),data=dat[which(dat$soillayer=='0-10cm' & !is.na(dat$MBC) & dat$season=='June-August'),]))
 
 
 ##################### Fig.6  #######################
@@ -2363,10 +2337,10 @@ R1517N <- ggplot(dat_N[dat_N$layer %in% c('Oa+e','0-10 cm'),],aes(year,R15_min,f
                          paste('(mg N',' kg soil'^{-1},' day'^{-1},')'))))+
   scale_y_continuous(limits=c(0,6),breaks=seq(0,6,2),expand=c(0,0))+
   geom_text(data=dat_N[dat_N$layer %in% c('Oa+e') & dat_N$R15_min==max(dat_N$R15_min),],col='black',
-            aes(y=5.4,x='2023'),label=expression(paste('Treat: ', italic('P'),'= 0.036')),
+            aes(y=5.4,x='2023'),label=expression(paste('Treat: ', italic('P'),'= 0.019')),
             position=position_dodge(0.8),size=4.2,hjust=0.7)+
   geom_text(data=dat_N[dat_N$layer %in% c('Oa+e') & dat_N$R15_min==max(dat_N$R15_min),],col='black',
-            aes(y=4.7,x='2023'),label=expression(paste('Year: ', italic('P'),'= 0.014')),
+            aes(y=4.7,x='2023'),label=expression(paste('Year: ', italic('P'),'< 0.001')),
             position=position_dodge(0.8),size=4.2,hjust=0.7)+
   geom_text(data=dat_N[dat_N$layer %in% c('Oa+e') & dat_N$R15_min==max(dat_N$R15_min),],col='black',
             aes(y=4.0,x='2023'),label='Treat x Year:  ns',
@@ -2415,10 +2389,10 @@ R1517_nitri  <- ggplot(dat_N[dat_N$layer %in% c('Oa+e','0-10 cm'),],aes(year,R15
        y=expression(atop(paste('Soil net N nitrification'),
                          paste( '(mg N',' kg soil'^{-1},' day'^{-1},')'))))+
   geom_text(data=dat_N[dat_N$layer %in% c('Oa+e') & dat_N$R15_nit==max(dat_N$R15_nit),],col='black',
-            aes(y=5.4,x='2023'),label=expression(paste('Treat: ', italic('P'),'< 0.001')),
+            aes(y=5.4,x='2023'),label=expression(paste('Treat: ', italic('P'),'= 0.003')),
             position=position_dodge(0.8),size=4.2,hjust=0.7)+
   geom_text(data=dat_N[dat_N$layer %in% c('Oa+e') & dat_N$R15_nit==max(dat_N$R15_nit),],col='black',
-            aes(y=4.7,x='2023'),label=expression(paste('Year: ', italic('P'),'= 0.050')),
+            aes(y=4.7,x='2023'),label=expression(paste('Year: ', italic('P'),'< 0.001')),
             position=position_dodge(0.8),size=4.2,hjust=0.7)+
   geom_text(data=dat_N[dat_N$layer %in% c('Oa+e') & dat_N$R15_nit==max(dat_N$R15_nit),],col='black',
             aes(y=4.0,x='2023'),label='Treat x Year:  ns',
@@ -2457,13 +2431,36 @@ R1517N+R1517_nitri+
   theme(plot.tag.position = c(0, 0.98),  
         plot.tag = element_text(size = 12,vjust = 0,hjust=0,face="bold"))->Fig_6ab;Fig_6ab
 
-setwd('D:/工作目录/202409/Manuscript_kai/Talk_20250503/Data and Code/Fig_6+Ext Dat fig_3_4_7_8')
+# setwd('D:/工作目录/202409/Manuscript_kai/Talk_20250503/Data and Code/Fig_6+Ext Dat fig_3_4_7_8')
 ggsave('Fig_6bc_Rmin+Rnit in soils_new.pdf',Fig_6ab, width = 12, height = 6,device=cairo_pdf)
 
+str(dat_N)
+
+dat_N.t<-summaryBy(data=dat_N, R15_nit+R15_min~year+layer+treatment,FUN=myfun)
+str(dat_N.t)
+
+
+datFUN(dat_N.t$R15_nit.m[dat_N.t$treatment=='warmed' & dat_N.t$layer=='Oa+e']/dat_N.t$R15_nit.m[dat_N.t$treatment=='control' & dat_N.t$layer=='Oa+e']-1)
+datFUN(dat_N.t$R15_min.m[dat_N.t$treatment=='warmed' & dat_N.t$layer=='Oa+e']/dat_N.t$R15_min.m[dat_N.t$treatment=='control' & dat_N.t$layer=='Oa+e']-1)
+
+mean(dat_N.t$R15_min.m[dat_N.t$treatment=='warmed' & dat_N.t$layer=='Oa+e'])/mean(dat_N.t$R15_min.m[dat_N.t$treatment=='control' & dat_N.t$layer=='Oa+e'])-1
+mean(dat_N.t$R15_nit.m[dat_N.t$treatment=='warmed' & dat_N.t$layer=='Oa+e'])/mean(dat_N.t$R15_nit.m[dat_N.t$treatment=='control' & dat_N.t$layer=='Oa+e'])-1
+
+
+mean(c(15/20-1,36/42-1, 16/24-1, 10/12-1))
+mean(c(20/24-1,39/40-1, 27/38-1, 12/14-1))
+
+str(dat_N)
+dat_N$plot<-substr(dat_N$subplot,1,1)
+
+summary(aov(R15_min~ factor(treatment)*factor(year)+Error(subplot/year),data=dat_N[dat_N$layer=='Oa+e',]))
+summary(aov(R15_nit~ factor(treatment)*factor(year)+Error(factor(subplot)/factor(year)),data=dat_N[dat_N$layer=='Oa+e',]))
 
 #################混合效应模型
 ###Oa+e 硝化
-model <- lmer(R15_nit ~ treatment * year + (1 | subplot), 
+library(lmerTest)
+
+model <- lmer(R15_nit ~ factor(treatment) * factor(year) + (1 | subplot), 
               data = dat_N[dat_N$layer == "Oa+e", ])
 summary(model)
 
@@ -2715,25 +2712,6 @@ ggplot(dat_min.nit_yr[dat_min.nit_yr$layer %in% c('Oa+e','0-10 cm'),],
 
 dat_min.nit_yr$plot<-substr(dat_min.nit_yr$subplot,1,1)
 
-###repeat anova
-#R15_min
-dat_N$plot<-substr(dat_N$subplot,1,1)
-str(dat_N)
-
-str(dat_min.nit_yr_treat)
-summary(aov(log(N.min_m2.m,10)~factor(treatment)+factor(year)+Error(1/year), 
-            data=dat_min.nit_yr_treat[dat_min.nit_yr_treat$layer=='Oa+e',]))
-
-
-summary(aov(log(N.min_m2.m,10)~factor(treatment)+factor(year)+Error(1/year), 
-            data=dat_min.nit_yr_treat[dat_min.nit_yr_treat$layer=='0-10 cm',]))
-
-
-summary(aov(log(N.nit_m2.m,10)~factor(treatment)+factor(year)+Error(plot/year), 
-            data=dat_min.nit_yr_treat[dat_min.nit_yr_treat$layer=='Oa+e',]))
-
-summary(aov(log(N.nit_m2.m,10)~factor(treatment)+factor(year)+Error(1/year), 
-            data=dat_min.nit_yr_treat[dat_min.nit_yr_treat$layer=='0-10 cm',]))
 
 ########## Fig_6.a_<Mean effect across the sample dates> #############
 str(dat)
