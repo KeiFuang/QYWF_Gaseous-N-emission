@@ -1053,20 +1053,21 @@ datai<-rbind(F.pt,add)   # make precipitation legend in Fig_3_<1>
                  date_labels = "%Y/%m",position = "bottom",
                  date_minor_breaks="months",breaks="3 months",expand = c(0,0))+
     scale_y_continuous(limits=c(-10,30),breaks=seq(-10,30,10),minor_breaks=seq(-10,30,5),expand=c(0,0))+
-    scale_color_manual(values=c("red","blue","black","grey"),limits=c("warmed","control","diff","precipitation"),name="",
-                       labels=c("warmed","control","difference","precipitation"))+
+    scale_color_manual(values=c("blue","red","black","grey"),limits=c("control","warmed","diff","precipitation"),name="",
+                       labels=c("Control","Warmed","Difference","Precipitation"))+
     mythem_sci+
     guides(y="prism_offset_minor",x="prism_offset_minor",
            color=guide_legend(ncol = 4,keyheight = 3,keywidth = 0.35,size = 30,byrow = FALSE))+   #多行图例设置
     labs(x="Date",y=expression(atop(paste('Soil temp (\u00B0C)'))))+
     theme(plot.margin = unit(c(0.5,4,0.3,4),'lines'),
           axis.title = element_text(colour = "black",size=21),
-          legend.position = c(0.195,0.97))+coord_cartesian(clip="on");st
+          legend.position = c(0.20,0.97))+coord_cartesian(clip="on");st
   
   str(F.pt)
   F.pt$month<-as.numeric(format(F.pt$date,'%m'))
+  
   ##土壤湿度
-  sm<-ggplot(F.pt[which(F.pt$treatment!="diff" & F.pt$month %in% seq(3,11)),],aes(date,WFPS.m,col=treatment,group=year))+
+  sm<-ggplot(F.pt[which(F.pt$treatment!="diff" & F.pt$month %in% seq(3,11)),],aes(date,WFPS.m,col=treatment,group=interaction(year,treatment)))+
     annotate("rect",xmin=as.Date("2018-09-09"),
              xmax=as.Date("2018-11-16"),
              ymin=0,ymax=80,alpha=.07,fill="red")+
@@ -1088,12 +1089,12 @@ datai<-rbind(F.pt,add)   # make precipitation legend in Fig_3_<1>
     annotate("rect",xmin=as.Date("2023-3-20"),
              xmax=as.Date("2023-12-08"),
              ymin=0,ymax=80,alpha=.07,fill="red")+
-    geom_bar(aes(y=precipitation*2/3),position=position_dodge(),stat="identity",size=0.1,fill="grey",col="transparent",alpha=.55)+
-    geom_line(linewidth=0.15,show.legend = F)+
+    geom_bar(aes(y=precipitation*2/3),position=position_dodge(),stat="identity",size=0.1,fill="grey",col="transparent",alpha=.45)+
+    geom_line(linewidth=0.15,show.legend = F,na.rm = T)+
     geom_errorbar(aes(ymin=WFPS.m-WFPS.se, ymax=WFPS.m+WFPS.se),stat = "identity",
                   linewidth=0.05,width=0,position=position_dodge(0),alpha=.3,show.legend = F)+
-    scale_colour_manual(values=c("blue","red","grey"),name="Treatment",
-                        labels=c("control","warmed","difference"),
+    scale_colour_manual(values=c("blue","red","grey"),name="",
+                        labels=c("control","warmed","precipitation"),
                         limits=c("control","warmed","diff"))+
     scale_x_date(limits = c(as.Date("2018/8/1"),as.Date("2023/12/31")),
                  date_labels = "%Y/%m",position = "bottom",
@@ -1103,11 +1104,53 @@ datai<-rbind(F.pt,add)   # make precipitation legend in Fig_3_<1>
                        name = expression(atop(paste("WFPS"),paste("(0-10 cm, %)"))),
                        sec.axis=sec_axis(~.*3/2,breaks=seq(0,120,30),labels=seq(0,120,30),
                                          name=expression(paste('Precipitation (mm)'))))+
-    
-    # geom_hline(yintercept = 0,lty=2,size=0.4,col="grey")+
+    guides(y="prism_offset_minor",x="prism_offset_minor")+mythem_sci+
     guides(y="prism_offset_minor",x="prism_offset_minor")+mythem_sci+
     theme(plot.margin = unit(c(0.5,4,0.3,4),'lines'),
-          legend.position = "Top")+coord_cartesian(clip="on");sm
+          legend.position = "none")+coord_cartesian(clip="on");sm
+  
+  # sm<-ggplot(F.pt[which(F.pt$treatment!="diff" & F.pt$month %in% seq(3,11)),],aes(date,WFPS.m,col=treatment,group=year))+
+  #   annotate("rect",xmin=as.Date("2018-09-09"),
+  #            xmax=as.Date("2018-11-16"),
+  #            ymin=0,ymax=80,alpha=.07,fill="red")+
+  #   annotate("rect",xmin=as.Date("2019-06-08"),
+  #            xmax=as.Date("2019-12-01"),
+  #            ymin=0,ymax=80,alpha=.07,fill="red")+
+  #   annotate("rect",xmin=as.Date("2020-06-16"),
+  #            xmax=as.Date("2020-08-26"),
+  #            ymin=0,ymax=80,alpha=.07,fill="red")+
+  #   annotate("rect",xmin=as.Date("2020-09-13"),
+  #            xmax=as.Date("2020-12-7"),
+  #            ymin=0,ymax=80,alpha=.07,fill="red")+
+  #   annotate("rect",xmin=as.Date("2021-03-29"),
+  #            xmax=as.Date("2021-12-7"),
+  #            ymin=0,ymax=80,alpha=.07,fill="red")+
+  #   annotate("rect",xmin=as.Date("2022-03-26"),
+  #            xmax=as.Date("2022-12-10"),
+  #            ymin=0,ymax=80,alpha=.07,fill="red")+
+  #   annotate("rect",xmin=as.Date("2023-3-20"),
+  #            xmax=as.Date("2023-12-08"),
+  #            ymin=0,ymax=80,alpha=.07,fill="red")+
+  #   geom_bar(aes(y=precipitation*2/3),position=position_dodge(),stat="identity",size=0.1,fill="grey",col="transparent",alpha=.55)+
+  #   geom_errorbar(aes(ymin=WFPS.m-WFPS.se, ymax=WFPS.m+WFPS.se),stat = "identity",
+  #                 linewidth=0.015,width=0,position=position_dodge(0),alpha=.3,show.legend = F)+
+  #   geom_line(linewidth=0.10,show.legend = F)+
+  #   scale_colour_manual(values=c("blue","red","grey"),name="Treatment",
+  #                       labels=c("control","warmed","difference"),
+  #                       limits=c("control","warmed","diff"))+
+  #   scale_x_date(limits = c(as.Date("2018/8/1"),as.Date("2023/12/31")),
+  #                date_labels = "%Y/%m",position = "bottom",
+  #                date_minor_breaks="months",breaks="3 months",name="Date",expand = c(0,0))+
+  #   scale_y_continuous(limits=c(0,80),breaks=seq(0,80,20),expand=c(0,0),
+  #                      labels = c(seq(0,60, by=20),""),
+  #                      name = expression(atop(paste("WFPS"),paste("(0-10 cm, %)"))),
+  #                      sec.axis=sec_axis(~.*3/2,breaks=seq(0,120,30),labels=seq(0,120,30),
+  #                                        name=expression(paste('Precipitation (mm)'))))+
+  #   
+  #   # geom_hline(yintercept = 0,lty=2,size=0.4,col="grey")+
+  #   guides(y="prism_offset_minor",x="prism_offset_minor")+mythem_sci+
+  #   theme(plot.margin = unit(c(0.5,4,0.3,4),'lines'),
+  #         legend.position = "Top")+coord_cartesian(clip="on");sm
   
   d0<-ggplot(F.pt[which(F.pt$treatment=="diff"  & F.pt$month %in% seq(3,11)),], aes(date,WFPS.m,col=treatment))+
     annotate("rect",xmin=as.Date("2018-09-09"),
