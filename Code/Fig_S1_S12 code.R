@@ -45,6 +45,127 @@ mydat$Lat<-as.numeric(mydat$Lat)
 mydat$Lon<-as.numeric(mydat$Lon)
 str(mydat)
 
+################## Fig_S1a_世界地图绘制 #################
+library(terra)      #栅格数据处理和制图
+library(tidyterra)     #栅格数据处理和制图
+library(sf)         #处理矢量数据
+library(ggplot2)    #创建地图
+library(cowplot)    #结合ggplot2对象
+library(ggspatial)  #添加指北针
+
+### present landuse
+glass<-rast("D:/Workspace/book/map/global_landcover/GLASS-GLC/GLASS-GLC_7classes_2015.tif")
+
+#将0值解释为NA标志
+NAflag(glass) <- 0
+
+#将值和分类名存为数据框
+cls <- data.frame(value=c(10,20,30,40,70,90,100), cover=c("Cropland", "Forest", "Grassland", "Shrubland", "Tundra", "Barren land", "Snow/Ice"))
+
+#将cls设置为glass栅格数据集的级别
+levels(glass) <- cls
+
+
+plot(glass)
+
+#将值和颜色存为数据框
+coltb <- data.frame(value=c(10,20,30,40,70,90,100), col=c("#E69800","#72A700","#A4FF74","#D7DF92","#FCFF70","#FFEEC9","#BBECFD"))
+
+#将coltb设置为glass栅格数据集的颜色
+coltab(glass) <-  coltb
+
+#绘图
+str(glass)
+plot(glass)
+
+###将所需数据重新定义坐标系
+library(raster)
+
+# 检查 glass 的 CRS
+print(crs(glass))
+
+# 如果 crs(glass) 返回的是字符型 CRS，尝试将其转换为 CRS 对象
+target_crs <- crs(glass)
+if (is.character(target_crs)) {
+  target_crs <- CRS(target_crs)
+}
+
+# # 再次尝试投影转换
+# cn_transformed <- projectRaster(cn, crs = target_crs)
+# 
+# plot(cn_transformed,add=T)
+
+# 筛选 Forest 类别
+forest_mask <- glass == 20  # 创建一个逻辑掩膜
+forest <- mask(glass, forest_mask, maskvalues = FALSE)  # 提取 Forest 区域
+
+# 查看结果
+plot(forest)
+
+# 加载全球海岸线数据
+library(rnaturalearth)
+world <- ne_coastline(scale = "medium", returnclass = "sf")
+
+# 确保 CRS 一致
+world <- st_transform(world, crs(forest))
+
+str(mydat)
+
+library(ggstar)
+b1 <- ggplot()+   
+  geom_spatraster(data = forest, aes(fill=cover),use_coltab = T,alpha=0.7)+ #use_coltab决定是否使用栅格数据的coltab颜色属性   
+  geom_sf(data = world, color = "black", fill = NA,size=0.01,alpha=0.6) +
+  geom_point(data=mydat[mydat$Site!='Qingyuan',],aes(Lon,Lat),fill='red',size=5,pch=21,col='black')+
+  geom_star(data=mydat[mydat$Site=='Qingyuan',],aes(Lon, Lat),starshape=1,
+            colour="black",size=4,fill='red',show.legend = FALSE)+
+  # geom_point(data=mydat[mydat$Site=='Qingyuan',],aes(Lon,Lat),fill='red',size=6, pch = 8,col='black')+
+  coord_sf(expand = FALSE)+ #不拓展绘图边缘，否则y的坐标刻度不能显示 
+  labs(x=NULL,y=NULL,fill='Legend')+
+  scale_y_continuous(limits=c(-60,91),breaks = seq(-60,90,30))+
+  scale_x_continuous(limits=c(-180,180),breaks = seq(-180,180,60))+
+  guides(x = guide_axis(position = "top"))+mythem+
+  theme(aspect.ratio = 0.416667,
+        plot.subtitle = element_text(vjust = 1), plot.caption = element_text(vjust = 1), 
+        axis.text.x = element_text(colour = "black",size=12,angle = 0,hjust = .5,vjust = .5),
+        axis.text.y = element_text(colour = "black",size = 12), 
+        axis.title.x =element_text(size=12), axis.title.y=element_text(colour = "black",size=12),
+        legend.text = element_text(size=12), legend.title =element_text(size=12),
+        panel.background = element_rect(fill =NA, colour = NA, linetype = "solid"),
+        panel.border = element_rect(fill =NA, colour = "black", linetype = "solid",linewidth = 0.3),
+        panel.grid=element_blank(),
+        panel.grid.major = element_blank(), 
+        plot.background = element_rect(linetype = "solid",linewidth = 0.3),
+        legend.key = element_rect(fill = NA), 
+        legend.background = element_rect(fill = NA), 
+        plot.margin = unit(c(0,0,0,0),'lines'),
+        legend.position = c(0.09,0.42));b1
+
+################## Fig_S1b_RRn响应的地理分布 ##############
+str(mydat)
+unique(mydat$Site)
+library(ggprism);library(patchwork)
+
+ggplot(mydat,aes(reorder(Site, Lon),RRn))+
+  geom_hline(yintercept = 0,lty=2,col='red',linewidth=0.3)+
+  geom_point(pch=1,size=5)+  geom_point(data=mydat[mydat$Site=='Qingyuan',],pch=16,color='red',size=4.8)+
+  scale_x_discrete(labels = c("Harvard Forest"="Harvard","Huntington Wildlife Forest"="Huntington", "Cloquet"="Cloquet",
+                              "Ely"="Ely","Stillberg"="Stillberg","Dooary Forest"="Dooary","Achenkirch"="Achenkirch", 
+                              "Maoxian"="Maoxian","Ningshan"="Ningshan","Wusutu"="Wusutu","Reykir"="Reykir","Qingyuan"="Qingyuan"),
+                   expand = c(0.03,0.03))+
+  scale_y_continuous(breaks = seq(-1,2,1),expand = c(0,0))+
+  labs(x=NULL,y= expression(paste('RRn of N'[2],'O emission')))+mythem+
+  theme(axis.title.y = element_text(size=12),axis.text.x = element_text(size=12),axis.text.y = element_text(size=12))+
+  coord_cartesian(clip="on",ylim=c(-1,2))+ guides(y="prism_offset_minor")->p1;p1
+
+b1+(p1+theme(plot.margin = unit(c(1,1,1,1),'lines')))+
+  plot_layout(ncol = 1,nrow=2,widths=c(4,4),heights=c(3,2.5))->p;p
+
+ggsave("Supp.1_N2O RRn_ab.pdf", p, width =9,height = 7,
+       device=cairo_pdf) 
+
+getwd()
+
+################# Response
 mydat$lnRR_v=mydat$N2O_w.sd^2/(mydat$Replications*mydat$N2O_w^2)+
   mydat$N2O_c.sd^2/(mydat$Replications*mydat$N2O_c^2)
 
@@ -1041,23 +1162,3 @@ p1+theme(plot.margin = unit(c(2,2,0,2),'mm'))+
 
 ggsave("D:/工作目录/202409/Manuscript_kai/Talk_20250503/Data and Code/Fig. S12/Fig.S12_N2O RRn的影响因子SI.pdf", figure, width =7.5, height =7.5,
        device=cairo_pdf) 
-
-############## RRn响应的地理分布 ##############
-str(mydat)
-unique(mydat$Site)
-
-ggplot(mydat,aes(reorder(Site, Lon),RRn))+
-  geom_hline(yintercept = 0,lty=2,col='red',linewidth=0.3)+
-  geom_point(pch=1,size=5)+  geom_point(data=mydat[mydat$Site=='Qingyuan',],pch=16,color='red',size=4.8)+
-  scale_x_discrete(labels = c("Harvard Forest"="Harvard","Huntington Wildlife Forest"="Huntington", "Cloquet"="Cloquet",
-                              "Ely"="Ely","Stillberg"="Stillberg","Dooary Forest"="Dooary","Achenkirch"="Achenkirch", 
-                              "Maoxian"="Maoxian","Ningshan"="Ningshan","Wusutu"="Wusutu","Reykir"="Reykir","Qingyuan"="Qingyuan"),
-                   expand = c(0.03,0.03))+
-  scale_y_continuous(breaks = seq(-1,2,1),expand = c(0,0))+
-  labs(x=NULL,y= expression(paste('RRn of N'[2],'O emission')))+mythem+
-  theme(axis.title.y = element_text(size=14),axis.text.x = element_text(size=14),axis.text.y = element_text(size=14))+
-  coord_cartesian(clip="on",ylim=c(-1,2))+ guides(y="prism_offset_minor")->p;p
-
-ggsave("Supp.1_N2O RRn_b.pdf", p, width =12.2,height = 3.2,
-       device=cairo_pdf) 
-       
