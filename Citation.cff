@@ -3,7 +3,7 @@ message: "If you use this repository, please cite it as below."
 authors:
   - family-names: Huang
     given-names: Kai
-title: "Project Title"
+title: "QYWF_Gaseous-N-emission"
 version: "1.0.0"
 doi: 10.5281/zenodo.1234567
 date-released: 2025-10-30
