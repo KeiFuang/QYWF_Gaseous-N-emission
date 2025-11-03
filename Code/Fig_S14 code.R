@@ -1,314 +1,224 @@
-############## æ°”æ€æ°®é‡Šæ”¾åˆ†æ ##############
-library(readxl)
-# setwd("D:/Workspace/book/test")
-dat<-read.csv('D:/Workspace/book/Qingyuan/soil_data/Incubation/Gaseou N/kaihuang/gaseousN release_kai.csv',header=TRUE)
-str(dat)
+{pacman::p_load("ggplot2","ggpmisc","ggpubr","ggprism","doBy","car","readr","crayon","rstatix",
+                "lme4","MCMCglmm","tidyverse","sjPlot","directlabels","agricolae","lubridate",
+                "patchwork","reshape2","dplyr","animation")  #¼ÓÔØ¶à¸ö°ü
+  Sys.setlocale("LC_TIME","English")  
+  
+  windowsFonts(Arial=windowsFont("Arial"),
+               Times=windowsFont("Times New Roman"))
+  
+  mythem<-theme(plot.subtitle = element_text(vjust = 1), plot.caption = element_text(vjust = 1), 
+                axis.text.x = element_text(colour = "black",size=21,angle = 0,hjust = .5,vjust =1),
+                axis.ticks = element_line(linewidth = .5),
+                axis.ticks.length = unit(2,"mm"),
+                prism.ticks.length = unit(1,"mm"),
+                axis.text.y = element_text(colour = "black",size = 21,hjust=.5), 
+                axis.title.x =element_text(size=21), axis.title.y=element_text(colour = "black",size=21),
+                legend.text = element_text(size=21), legend.title =element_text(size=21),
+                legend.margin = margin(unit(c(0.05,3,5,3),'mm')),
+                # legend.box.background = element_rect(fill ="white", size=0.6,colour = "black", linetype = "solid"),
+                panel.background = element_rect(fill =NA, linewidth=0.6,colour = "black", linetype = "solid",
+                                                inherit.blank=T),
+                panel.grid=element_blank(),     #element_line(colour="gray",size=0.5),
+                panel.grid.major = element_blank(),    #element_line(colour = "gray",size=0.6), 
+                plot.background = element_rect(fill=NA,color=NA,linetype = "solid"),
+                legend.key = element_rect(fill = NA), 
+                legend.background = element_rect(fill = NA), 
+                plot.margin = unit(c(5,5,2,2), 'mm'),   #µ÷Õû»­Í¼ÇøÓòµÄ¼ä¾à£¬´ÓÉÏÓÒÏÂ×óµ÷Õû
+                strip.background = element_rect(fill = NA,color='black'), 
+                strip.text = element_text(colour = "black",size = 20,hjust=.5),
+                legend.position = "none")
+  
+  ###¼ÆËãÊı¾İ¾ùÖµ£¬·¶Î§£¬se
+  datFUN<-function(x){c(mean=round(mean(na.omit(x)),3),
+                        range=paste(round(min(na.omit(x)),3),round(max(na.omit(x)),3),sep="~"),
+                        n=length(na.omit(x)),
+                        se=round(sd(na.omit(x))/sqrt(length(na.omit(x))),3),
+                        sd=round(sd(na.omit(x)),3))
+  }
+}
+
+library(plotly);library(grid)
+list.files('D:/Workspace/book/Qingyuan/soil_data/Incubation/Gaseou N')
+# xi<-readxl::read_excel('D:/Workspace/book/Qingyuan/soil_data/Incubation/Gaseou N/xidan_forests.xlsx',sheet='kai_recal',
+#                        col_names=TRUE,col_types=NULL)
+
+str(xi)
+ggplot(xi,aes(WFPS,N2_N2O))+
+  geom_smooth(method='lm',formula = y~poly(x,1),se=T,col='black',alpha=0.3,linewidth=0.6)+
+  geom_point(size=2,pch=1,stroke=1)+
+  # scale_y_continuous(breaks=seq(0,30,10),expand=c(0.05,0.05))+
+  scale_x_continuous(limits=c(20,140),breaks=seq(20,140,40),expand=c(0.05,0.05))+
+  labs(x='WFPS (%)',y=expression(paste('N'[2],'/N'[2],'O ratio')))+
+  mythem+theme(panel.grid.major = element_line(linewidth = 0.1,colour = 'gray'),
+               panel.grid.minor = element_line(linewidth = 0.1,colour = 'gray'),
+               axis.title = element_text(size=9),
+               axis.text =  element_text(size=9),
+               plot.margin = unit(c(1,1,1,1),'cm'))+
+  stat_poly_eq(formula =y~x,coef.digits = 2,eq.x.rhs="x", 
+               eq.with.lhs = "italic(y)~`=`~",   #¸ø¡°y"»»ĞÎÊ½         
+               aes(label = paste(stat(eq.label),sep ="*\",\"~~~")),#sep = "*\", \"*")),
+               label.x.npc = "left", label.y.npc = 0.95,parse = TRUE,
+               vstep=0.2,hstep=0.1,size = 4.2)+
+  stat_poly_eq(formula =y~x,coef.digits = 2,eq.x.rhs="x", 
+               eq.with.lhs = "italic(y)~`=`~",   #¸ø¡°y"»»ĞÎÊ½         
+               aes(label = paste(stat(rr.label),stat(p.value.label),sep ="*\",\"~~~")),#sep = "*\", \"*")),
+               label.x.npc = "left", label.y.npc = 0.85,parse = TRUE,
+               vstep=0.2,hstep=0.1,size = 4.2)+
+  coord_cartesian(clip = 'on',ylim = c(0,20))->p1;p1
+
+
+setwd('D:/¹¤×÷Ä¿Â¼/202409/Manuscript_kai/Talk_20250503/Data and Code/Supplementary')
+
+ggsave("N2_N2O ratio with moisture gradient.pdf", p1, width =9, height =7) 
+
+xi$N2_N2O_mod<- -1.1+0.13*xi$WFPS
+
+xi$res_N2_N2O<- xi$N2_N2O-xi$N2_N2O_mod
+
+xi$res_N2<- xi$N2_N2O_mod*xi$N2O-xi$N2
+
+
+ggplot(xi,aes(WFPS,res_N2_N2O))+
+  geom_smooth(method='lm',formula = y~poly(x,1),se=T,col='black',alpha=0.3)+
+  geom_point(size=2,pch=1,stroke=1)
+
+
+ggplot(xi,aes(res_N2_N2O))+
+  geom_smooth(method='lm',formula = y~poly(x,1),se=T,col='black',alpha=0.3)+
+  geom_point(size=2,pch=1,stroke=1)
+
 
 library(ggplot2)
 
-ggplot(dat,aes(Temp,AC_N2,col=treatment))+
-  geom_point(size=2)+
-  facet_wrap(.~soillayer)
-
-ggplot(dat,aes(Temp,N_N2O,col=treatment))+
-  geom_point(size=2)+
-  facet_wrap(plot~soillayer)
-
-mythem<-theme(plot.subtitle = element_text(vjust = 1), plot.caption = element_text(vjust = 1), 
-              axis.text.x = element_text(colour = "black",size=12,angle = 0,hjust = .5,vjust =1),
-              axis.ticks = element_line(linewidth = .5),
-              axis.ticks.length = unit(2,"mm"),
-              prism.ticks.length = unit(1,"mm"),
-              axis.text.y = element_text(colour = "black",size = 12,hjust=.5), 
-              axis.title.x =element_text(size=12), axis.title.y=element_text(colour = "black",size=12),
-              legend.text = element_text(size=12), legend.title =element_text(size=12),
-              legend.margin = margin(unit(c(0.5,1,0.5,1),'cm')),
-              # legend.box.background = element_rect(fill ="white", size=0.6,colour = "black", linetype = "solid"),
-              panel.background = element_rect(fill =NA, linewidth=0.6,colour = "black", linetype = "solid",
-                                              inherit.blank=T),
-              panel.grid=element_blank(),     #element_line(colour="gray",size=0.5),
-              panel.grid.major = element_blank(),    #element_line(colour = "gray",size=0.6), 
-              plot.background = element_rect(fill=NA,color=NA,linetype = "solid"),
-              legend.key = element_rect(fill = NA,color=NA), 
-              legend.background = element_rect(fill = NA), 
-              plot.margin = unit(c(0.4,0.3,0.4,0.3), 'mm'),   #è°ƒæ•´ç”»å›¾åŒºåŸŸçš„é—´è·ï¼Œä»ä¸Šå³ä¸‹å·¦è°ƒæ•´
-              strip.background = element_rect(fill = NA,color='black'), 
-              strip.text = element_text(colour = "black",size = 12,hjust=.5),
-              legend.position = "none")
-
-################# N2Oäº§ç”Ÿ
-####Oa+e
-str(dat)
-unique(dat$soillayer)
-dat$soillayer<-ifelse(dat$soillayer=='Oa+e','O layer','0-10 cm')
-
-dat<-within(dat,soillayer<-factor(dat$soillayer,levels = c('O layer','0-10 cm')))
-
-names(dat)
-
-{
-  fit1_co <- summary(lm(log(P_N2O) ~ Temp,data=dat[dat$soillayer=='O layer' & dat$treatment=='control',]));fit1_co
-  fit1_co$coefficients[[1]];fit1_co$coefficients[[2]]
-  
-  fit1_wo <- summary(lm(log(P_N2O) ~ Temp,data=dat[dat$soillayer=='O layer' & dat$treatment=='warmed',]));fit1_wo
-  fit1_wo$coefficients[[1]];fit1_wo$coefficients[[2]]
-  
-  # åˆ›å»ºä¸€ä¸ªæ–°æ•°æ®æ¡†ï¼Œç”¨äºç»˜åˆ¶æ‹Ÿåˆæ›²çº¿
-  x_fit <- seq(5, 25, by = 0.01)
-  y_fit.c <- exp(fit1_co$coefficients[[2]]*x_fit + fit1_co$coefficients[[1]])
-  y_fit.w <- exp(fit1_wo$coefficients[[2]]*x_fit + fit1_wo$coefficients[[1]])
-  
-  fit_data <- data.frame(x = x_fit, control = y_fit.c, warmed = y_fit.w)
-  
-  library(ggpmisc);library(ggprism)
-  p1_0<-ggplot(dat[dat$soillayer=='O layer',],
-               aes(Temp,P_N2O,col=treatment))+
-    geom_point(size=1,pch=1)+
-    scale_color_manual(limits=c('control','warmed'),values = c('blue','red'),name=NULL)+
-    geom_smooth(method = 'glm', 
-                formula = y ~ x, 
-                method.args = list(family = Gamma(link = "log")),  se=F,show.legend = T,linewidth=0.4)+
-    facet_grid(.~soillayer,scales = 'free_y')+
-    labs(x='Temperature (\u00B0C)',y=expression(paste('N'[2],'O production (ng N  g'^-1,' h'^-1~')')))+
-    stat_poly_eq(aes(Temp,log(P_N2O),col=treatment,
-                     label = paste(stat(rr.label),stat(p.value.label),sep="*\",\"~")),
-                 formula =y~x,eq.x.rhs="x",coef.digits = 2,rr.digits = 2, 
-                 eq.with.lhs = "italic(ln(y))~`=`~",hjust=0,  #ç»™â€œy"æ¢å½¢å¼         
-                 na.rm = FALSE,parse = TRUE,label.x.npc = 0.03,label.y.npc=c(0.90,0.80),size = 3)+
-    scale_y_continuous(breaks=seq(0,6,2),limits=c(0,6),expand=c(0,0))+
-    mythem+theme(legend.position = c(0.06,0.5));p1_0
-  
-  ####0-10cm
-  fit1_co <- summary(lm(log(P_N2O) ~ Temp,data=dat[dat$soillayer=='0-10 cm' & dat$treatment=='control',]));fit1_co
-  fit1_co$coefficients[[1]];fit1_co$coefficients[[2]]
-  
-  fit1_wo <- summary(lm(log(P_N2O) ~ Temp,data=dat[dat$soillayer=='0-10 cm' & dat$treatment=='warmed',]));fit1_wo
-  fit1_wo$coefficients[[1]];fit1_wo$coefficients[[2]]
-  
-  # åˆ›å»ºä¸€ä¸ªæ–°æ•°æ®æ¡†ï¼Œç”¨äºç»˜åˆ¶æ‹Ÿåˆæ›²çº¿
-  x_fit <- seq(5, 25, by = 0.01)
-  y_fit.c <- exp(fit1_co$coefficients[[2]]*x_fit + fit1_co$coefficients[[1]])
-  y_fit.w <- exp(fit1_wo$coefficients[[2]]*x_fit + fit1_wo$coefficients[[1]])
-  
-  fit_data <- data.frame(x = x_fit, control = y_fit.c, warmed = y_fit.w)
-  
-  library(ggpmisc)
-  p1_1<-ggplot(dat[dat$soillayer=='0-10 cm',],
-               aes(Temp,P_N2O,col=treatment))+
-    geom_point(size=1,pch=1)+
-    scale_color_manual(limits=c('control','warmed'),values = c('blue','red'))+
-    geom_smooth(method = 'glm', 
-                formula = y ~ x, 
-                method.args = list(family = Gamma(link = "log")),  se=F,show.legend = T,linewidth=0.4)+
-    facet_grid(.~soillayer,scales = 'free_y')+
-    labs(x='Temperature (\u00B0C)',y=expression(paste('N'[2],'O production (ng N  g'^-1,' h'^-1~')')))+
-    stat_poly_eq(aes(Temp,log(P_N2O),col=treatment,
-                     label = paste(stat(rr.label),stat(p.value.label),sep="*\",\"~")),
-                 formula =y~x,eq.x.rhs="x",coef.digits = 3,rr.digits = 2, 
-                 eq.with.lhs = "italic(ln(y))~`=`~",hjust=0,  #ç»™â€œy"æ¢å½¢å¼         
-                 na.rm = FALSE,parse = TRUE,label.x.npc = 0.03,label.y.npc=c(0.90,0.80),size = 3)+
-    scale_y_continuous(breaks=seq(0,6,2),limits=c(0,6),expand=c(0,0))+
-    mythem;p1_1
-  
-  
-  ############# N2 äº§ç”Ÿ
-  ####Oa+e
-  str(dat)
-  fit1_co <- summary(lm(log(AC_N2) ~ Temp,data=dat[dat$soillayer=='O layer' &
-                                                     dat$treatment=='control',]));fit1_co
-  fit1_co$coefficients[[1]];fit1_co$coefficients[[2]]
-  
-  fit1_wo <- summary(lm(log(AC_N2) ~ Temp,data=dat[dat$soillayer=='O layer' & dat$treatment=='warmed',]));fit1_wo
-  fit1_wo$coefficients[[1]];fit1_wo$coefficients[[2]]
-  
-  # åˆ›å»ºä¸€ä¸ªæ–°æ•°æ®æ¡†ï¼Œç”¨äºç»˜åˆ¶æ‹Ÿåˆæ›²çº¿
-  x_fit <- seq(5, 25, by = 0.01)
-  y_fit.c <- exp(fit1_co$coefficients[[2]]*x_fit + fit1_co$coefficients[[1]])
-  y_fit.w <- exp(fit1_wo$coefficients[[2]]*x_fit + fit1_wo$coefficients[[1]])
-  
-  fit_data <- data.frame(x = x_fit, control = y_fit.c, warmed = y_fit.w)
-  
-  library(ggpmisc);library(ggprism)
-  p2_0<-ggplot(dat[dat$soillayer=='O layer',],
-               aes(Temp,AC_N2,col=treatment))+
-    geom_point(size=1,pch=1)+
-    scale_color_manual(limits=c('control','warmed'),values = c('blue','red'))+
-    geom_smooth(method = 'glm', 
-                formula = y ~ x, 
-                method.args = list(family = Gamma(link = "log")),  se=F,show.legend = T,linewidth=0.4)+
-    facet_grid(.~soillayer,scales = 'free_y')+
-    labs(x='Temperature (\u00B0C)',y=expression(paste('N'[2],' production (ng N  g'^-1,' h'^-1~')')))+
-    stat_poly_eq(aes(Temp,log(AC_N2),col=treatment,
-                     label = paste(stat(rr.label),stat(p.value.label),sep="*\",\"~")),
-                 formula =y~x,eq.x.rhs="x",coef.digits = 2,rr.digits = 2, 
-                 eq.with.lhs = "italic(ln(y))~`=`~",hjust=0,  #ç»™â€œy"æ¢å½¢å¼         
-                 na.rm = FALSE,parse = TRUE,label.x.npc = 0.03,label.y.npc=c(0.90,0.80),size = 3)+
-    scale_y_continuous(breaks=seq(0,0.4,0.1),expand=c(0,0))+
-    coord_cartesian(ylim=c(0,0.4),clip='on')+
-    mythem;p2_0
-  
-  ####0-10cm
-  fit1_co <- summary(lm(log(AC_N2) ~ Temp,data=dat[dat$soillayer=='0-10 cm' & dat$treatment=='control',]));fit1_co
-  fit1_co$coefficients[[1]];fit1_co$coefficients[[2]]
-  
-  fit1_wo <- summary(lm(log(AC_N2) ~ Temp,data=dat[dat$soillayer=='0-10 cm' & dat$treatment=='warmed',]));fit1_wo
-  fit1_wo$coefficients[[1]];fit1_wo$coefficients[[2]]
-  
-  # åˆ›å»ºä¸€ä¸ªæ–°æ•°æ®æ¡†ï¼Œç”¨äºç»˜åˆ¶æ‹Ÿåˆæ›²çº¿
-  x_fit <- seq(5, 25, by = 0.01)
-  y_fit.c <- exp(fit1_co$coefficients[[2]]*x_fit + fit1_co$coefficients[[1]])
-  y_fit.w <- exp(fit1_wo$coefficients[[2]]*x_fit + fit1_wo$coefficients[[1]])
-  
-  fit_data <- data.frame(x = x_fit, control = y_fit.c, warmed = y_fit.w)
-  
-  library(ggpmisc)
-  str(dat)
-  
-  dat$plot_ab<-paste(dat$plot,dat$part,sep='')
-  
-  p2_1<-ggplot(dat[dat$soillayer=='0-10 cm',],
-               aes(Temp,AC_N2,col=treatment))+
-    geom_point(size=1,pch=1)+#geom_line(aes(group=plot_ab))+
-    scale_color_manual(limits=c('control','warmed'),values = c('blue','red'))+
-    geom_smooth(method = 'glm', 
-                formula = y ~ x, 
-                method.args = list(family = Gamma(link = "log")),  se=F,show.legend = T,linewidth=0.4)+
-    facet_grid(.~soillayer,scales = 'free_y')+
-    labs(x='Temperature (\u00B0C)',y=expression(paste('N'[2],' production (ng N  g'^-1,' h'^-1~')')))+
-    stat_poly_eq(aes(Temp,log(AC_N2),col=treatment,
-                     label = paste(stat(rr.label),stat(p.value.label),sep="*\",\"~")),
-                 formula =y~x,eq.x.rhs="x",coef.digits = 2,rr.digits = 2, 
-                 eq.with.lhs = "italic(ln(y))~`=`~",hjust=0,  #ç»™â€œy"æ¢å½¢å¼         
-                 na.rm = FALSE,parse = TRUE,label.x.npc = 0.03,label.y.npc=c(0.90,0.80),size = 3)+
-    scale_y_continuous(breaks=seq(0,.4,.1),expand=c(0,0))+
-    coord_cartesian(ylim=c(0,0.4),clip='on')+
-    mythem;p2_1
-  
-  
-  
-  ############# N2O/N2 äº§ç”Ÿ ____T gradient
-  ####Oa+e
-  str(dat)
-  dat$N2_N2O<-dat$AC_N2/dat$P_N2O
-  p3_0<-ggplot(dat[dat$soillayer=='O layer',],
-               aes(Temp,N2_N2O,col=treatment))+
-    geom_point(size=1,pch=1)+
-    scale_color_manual(limits=c('control','warmed'),values = c('blue','red'))+
-    facet_grid(.~soillayer,scales = 'free_y')+
-    # geom_smooth(method = 'lm',formula = y~x,se=F)+
-    stat_poly_eq(aes(Temp,N2_N2O,col=treatment,
-                     label = ifelse(stat(p.value.label)<0.05,paste(stat(rr.label),stat(p.value.label),sep="*\",\"~~~"),'ns')),
-                 formula =y~x,eq.x.rhs="x",coef.digits = 2,rr.digits = 2,
-                 eq.with.lhs = "italic(y)~`=`~",hjust=0,  #ç»™â€œy"æ¢å½¢å¼
-                 na.rm = FALSE,parse = TRUE,label.x.npc = 0.03,label.y.npc=c(0.90,0.80),size = 3)+
-    labs(x='Temperature (\u00B0C)',y=expression(paste('N'[2],'/N'[2],'O')))+
-    scale_y_continuous(breaks=seq(0,.4,.1),limits=c(0,.4),expand=c(0,0))+
-    mythem;p3_0
-  
-  ####0-10cm
-  p3_1<-ggplot(dat[dat$soillayer=='0-10 cm',],
-               aes(Temp,N2_N2O,col=treatment))+
-    geom_point(size=1,pch=1)+
-    scale_color_manual(limits=c('control','warmed'),values = c('blue','red'))+
-    facet_grid(.~soillayer,scales = 'free_y')+
-    labs(x='Temperature (\u00B0C)',y=expression(paste('N'[2],'/N'[2],'O')))+
-    # geom_smooth(method = 'lm',formula = y~x,se=F)+
-    stat_poly_eq(aes(Temp,N2_N2O,col=treatment,
-                     label = ifelse(stat(p.value.label)<0.05,paste(stat(rr.label),stat(p.value.label),sep="*\",\"~~~"),'ns')),
-                 formula =y~x,eq.x.rhs="x",coef.digits = 2,rr.digits = 2,
-                 eq.with.lhs = "italic(y)~`=`~",hjust=0,  #ç»™â€œy"æ¢å½¢å¼
-                 na.rm = FALSE,parse = TRUE,label.x.npc = 0.03,label.y.npc=c(0.90,0.80),size = 3)+
-    scale_y_continuous(breaks=seq(0,.4,.1),limits=c(0,.4),expand=c(0,0))+
-    mythem;p3_1
-  
-}
+ggplot(xi, aes(x = res_N2_N2O)) +
+  geom_histogram(
+    aes(y = ..density..),  # ×ª»»ÎªÃÜ¶È
+    bins = 5,            # µ÷Õû·ÖÏäÊı
+    fill = "lightblue",
+    color = "black",
+    alpha = 0.7
+  ) +
+  geom_density(           # Ìí¼ÓÃÜ¶ÈÇúÏß
+    color = "red",
+    linewidth = 1
+  ) +
+  labs(
+    x = "res_N2_N2O",
+    y = "Density",
+    title = "Distribution of res_N2_N2O"
+  ) +
+  theme_minimal()
 
 
-############# N2O/N2 äº§ç”Ÿ______SM gradient
-####Oa+e
-str(dat)
-dat$N2_N2O<-dat$AC_N2/dat$P_N2O
+# Ê×ÏÈ¼ÆËã±ØÒªµÄ²ÎÊı
+# ¼ÆËã¾ùÖµºÍ±ê×¼²î
+mean_val <- mean(xi$res_N2_N2O, na.rm = TRUE)
+sd_val <- sd(xi$res_N2_N2O, na.rm = TRUE)
+n <- length(na.omit(xi$res_N2_N2O))
 
-# åˆ›å»ºä»è“è‰²åˆ°çº¢è‰²çš„é¢œè‰²æ¢¯åº¦å‡½æ•°
-col_palette <- colorRampPalette(c("skyblue", "red"))
+# ¼ÆËã95%ÖÃĞÅÇø¼ä
+conf_int <- qnorm(c(0.025, 0.975), mean = mean_val, sd = sd_val)
 
-# ç”Ÿæˆ5ä¸ªé¢œè‰²
-colors <- col_palette(5)
+# ´´½¨ÁÙÊ±Í¼»ñÈ¡bin¿í¶È
+temp_plot <- ggplot(xi, aes(x = res_N2_N2O)) + geom_histogram(bins = 5)
+bin_width <- diff(ggplot_build(temp_plot)$data[[1]]$x)[1]
 
-# æŸ¥çœ‹é¢œè‰²
-colors
+# ÕıÊ½»æÍ¼
+p2 <- ggplot(xi, aes(x = res_N2_N2O)) +
+  stat_function(
+    fun = function(x) {
+      dnorm(x, mean = mean_val, sd = sd_val) * n * bin_width
+    },
+    color = "black",
+    linewidth = 0.6
+  ) +
+  geom_vline(xintercept = 0,lty=2,col='red')+
+  # Ìí¼Ó95%ÖÃĞÅÇø¼äÒõÓ°
+  # geom_area(
+  #   stat = "function",
+  #   fun = function(x) {
+  #     dnorm(x, mean = mean_val, sd = sd_val) * n * bin_width
+  #   },
+  #   fill = "gray80",
+  #   alpha = 0.5,
+  #   xlim = conf_int
+  # ) +
+  # Ìí¼ÓÖÃĞÅÇø¼ä±ß½çÏß
+  # geom_vline(
+  #   xintercept = conf_int,
+  #   linetype = "dashed",
+  #   color = "red",
+  #   linewidth = 0.5
+  # ) +
+  labs(
+    x = expression(atop(
+      paste('N'[2], '/N'[2], 'O ratio residual'),
+      paste('(Observed-Simulated)')
+    )),
+    y = "Count"
+  ) +
+  scale_y_continuous(limits = c(0, 4), expand = c(0, 0)) +
+  # scale_x_continuous(limits = c(-5, 5), expand = c(0, 0)) +
+  mythem+
+  theme(
+    panel.grid.major = element_line(linewidth = 0.1, colour = 'gray'),
+    panel.grid.minor = element_line(linewidth = 0.1, colour = 'gray'),
+    axis.title = element_text(size = 9),
+    axis.text = element_text(size = 9),
+    plot.margin = unit(c(1, 1, 1, 1), 'cm'),
+    panel.background = element_rect(fill =NA, linewidth=0.6,colour = "black", linetype = "solid",
+                                    inherit.blank=T)
+  );p2
 
+# # ÏÔÊ¾Í¼ĞÎ
+# print(p2)
+# 
+# # ¿ÉÑ¡£ºÔÚÍ¼ĞÎÉÏÌí¼ÓÖÃĞÅÇø¼äÊıÖµ±êÇ©
+# p2 + annotate(
+#   "text",
+#   x = mean_val,
+#   y = 3.5,
+#   label = paste0("95% CI: [", round(conf_int[1], 2), ", ", round(conf_int[2], 2), "]"),
+#   size = 3
+# )
 
-p4_0<-ggplot(dat[as.factor(dat$soillayer)=='O layer',],
-             aes(Dry_sm,N2_N2O,col=treatment,fill=treatment))+
-  geom_point(size=1,pch=1)+  #aes(col=factor(Temp)),
-  scale_color_manual(limits=c('control','warmed'),values = c('blue','red'))+
-  facet_grid(.~soillayer,scales = 'free_y')+
-  geom_smooth(method = 'lm',formula = y~x,se=F,linewidth=0.4)+
-  stat_poly_eq(aes(label = paste(stat(eq.label),sep="*\",\"~")),
-               formula =y~x,eq.x.rhs="x",coef.digits = 2,rr.digits = 2,
-               eq.with.lhs = "italic(y)~`=`~",hjust=0,  #ç»™â€œy"æ¢å½¢å¼
-               na.rm = FALSE,parse = TRUE,label.x.npc = 0.07,label.y.npc=c(0.90,0.70),size = 3)+
-  stat_poly_eq(aes(label = paste(stat(rr.label),stat(p.value.label),sep="*\",\"~")),
-               formula =y~x,eq.x.rhs="x",coef.digits = 1,rr.digits = 2,
-               eq.with.lhs = "italic(y)~`=`~",hjust=0,  #ç»™â€œy"æ¢å½¢å¼
-               na.rm = FALSE,parse = TRUE,label.x.npc = 0.07,label.y.npc=c(0.80,0.60),size = 3)+
-  # geom_smooth(method = 'lm',formula = y~x,se=T,col='black')+
-  # stat_poly_eq(aes(label = paste(stat(rr.label),stat(p.value.label),sep="*\",\"~")),
-  #              formula =y~x+I(x^2),eq.x.rhs="x",coef.digits = 2,rr.digits = 2,
-  #              eq.with.lhs = "italic(y)~`=`~",hjust=0,col='black',  #ç»™â€œy"æ¢å½¢å¼
-  #              na.rm = FALSE,parse = TRUE,label.x.npc = 0.07,label.y.npc=c(0.73),size = 3)+
-  scale_y_continuous(breaks=seq(0,.4,.1),expand=c(0,0))+
-  scale_x_continuous(breaks=seq(0.2,1.0,0.2),limits=c(0.2,1.0),expand=c(0.01,0.01))+
-  coord_cartesian(ylim=c(0,0.4),clip='on')+
-  labs(x=expression(paste('Soil moisture (g H'[2],'O g'^'-1',' soil)')),y=expression(paste('N'[2],'/N'[2],'O')))+
-  mythem;p4_0
+ggplot(xi,aes(WFPS,res_N2_N2O))+
+  geom_smooth(method='lm',formula = y~poly(x,1),se=T,col='black',alpha=0.3,linewidth=0.6)+
+  geom_point(size=2,pch=1,stroke=1)+
+  scale_x_continuous(limits=c(20,140),breaks=seq(20,140,40),expand=c(0.05,0.05))+
+  labs(x='WFPS (%)',y=expression(atop(paste('N'[2],'/N'[2],'O ratio residual'),
+                                      paste('(Observed-Simulated)'))))+
+  mythem+theme(panel.grid.major = element_line(linewidth = 0.1,colour = 'gray'),
+               panel.grid.minor = element_line(linewidth = 0.1,colour = 'gray'),
+               axis.title = element_text(size=9),
+               axis.text =  element_text(size=9),
+               plot.margin = unit(c(1,1,1,1),'cm'))+
+  stat_poly_eq(formula =y~x,coef.digits = 2,eq.x.rhs="x", 
+               eq.with.lhs = "italic(y)~`=`~",   #¸ø¡°y"»»ĞÎÊ½         
+               aes(label = paste(stat(rr.label),stat(p.value.label),sep ="*\",\"~~~")),#sep = "*\", \"*")),
+               label.x.npc = "left", label.y.npc = 0.95,parse = TRUE,
+               vstep=0.2,hstep=0.1,size = 4.2)+
+  coord_cartesian(clip = 'on',ylim = c(-5,5))->p3;p3
 
-####0-10cm
-p4_1<-ggplot(dat[as.factor(dat$soillayer)=='0-10 cm',],
-             aes(Dry_sm,N2_N2O,col=treatment))+
-  geom_point(size=1,pch=1)+  #aes(col=factor(Temp)),
-  scale_color_manual(limits=c('control','warmed'),values = c('blue','red'))+
-  facet_grid(.~soillayer,scales = 'free_y')+
-  geom_smooth(method = 'lm',formula = y~x,se=F,linewidth=0.4)+
-  stat_poly_eq(aes(label = paste(stat(eq.label),sep="*\",\"~")),
-               formula =y~x,eq.x.rhs="x",coef.digits = 2,rr.digits = 2,
-               eq.with.lhs = "italic(y)~`=`~",hjust=0,  #ç»™â€œy"æ¢å½¢å¼
-               na.rm = FALSE,parse = TRUE,label.x.npc = 0.07,label.y.npc=c(0.90,0.70),size = 3)+
-  stat_poly_eq(aes(label = paste(stat(rr.label),stat(p.value.label),sep="*\",\"~")),
-               formula =y~x,eq.x.rhs="x",coef.digits = 1,rr.digits = 2,
-               eq.with.lhs = "italic(y)~`=`~",hjust=0,  #ç»™â€œy"æ¢å½¢å¼
-               na.rm = FALSE,parse = TRUE,label.x.npc = 0.07,label.y.npc=c(0.80,0.60),size = 3)+
-  
-  # geom_smooth(method = 'lm',formula = y~x,se=T,col='black')+
-  # stat_poly_eq(aes(label = paste(stat(rr.label),stat(p.value.label),sep="*\",\"~")),
-  #              formula =y~x+I(x^2),eq.x.rhs="x",coef.digits = 2,rr.digits = 2,
-  #              eq.with.lhs = "italic(y)~`=`~",hjust=0,col='black',  #ç»™â€œy"æ¢å½¢å¼
-  #              na.rm = FALSE,parse = TRUE,label.x.npc = 0.07,label.y.npc=c(0.73),size = 3)+
-  scale_x_continuous(breaks=seq(0.2,0.6,0.1),limits=c(0.2,0.6),expand=c(0.01,0.01))+
-  scale_y_continuous(breaks=seq(0,.4,.1),expand=c(0,0))+
-  coord_cartesian(ylim=c(0,0.4),clip='on')+
-  labs(x=expression(paste('Soil moisture (g H'[2],'O g'^'-1',' soil)')),y=expression(paste('N'[2],'/N'[2],'O')))+
-  mythem;p4_1
+(p1+ labs(tag = "A") +theme(axis.title.x = element_text(size=12),
+                            axis.title.y = element_text(size=12),
+                            axis.text.x = element_text(size=12),
+                            axis.text.y = element_text(size=12),
+                            plot.tag = element_text(face = "bold",size=12),
+                            plot.margin = unit(c(2,0,1,1.5), 'mm'))+
+    p2+ labs(tag = "B") +theme(axis.title.x = element_text(size=12),
+                               axis.title.y = element_text(size=12),
+                               axis.text.x = element_text(size=12),
+                               axis.text.y = element_text(size=12),
+                               plot.tag = element_text(face = "bold",size=12),
+                               plot.margin = unit(c(2,0,1,1.5), 'mm'))+
+    p3 + labs(tag = "C") +theme(axis.title.x = element_text(size=12),
+                                axis.title.y = element_text(size=12),
+                                axis.text.x = element_text(size=12),
+                                axis.text.y = element_text(size=12),
+                                plot.tag = element_text(face = "bold",size=12),
+                                plot.margin = unit(c(2,0,1,1.5), 'mm')))->p;p
 
-library(ggpubr)
-figure<-ggarrange(p1_0+rremove("xlab")+theme(plot.margin = unit(c(0.1,0.13,0.1,0.03), 'cm')),
-                  p2_0+rremove("xlab")+theme(plot.margin = unit(c(0.1,0.13,0.1,0.03), 'cm')),
-                  p3_0+rremove("xlab")+theme(plot.margin = unit(c(0.1,0.13,0.1,0.03), 'cm')),
-                  p4_0+rremove("xlab")+theme(plot.margin = unit(c(0.1,0.13,0.1,0.03), 'cm')),
-                  p1_1+theme(plot.margin = unit(c(0.1,0.13,0.1,0.03), 'cm')),
-                  p2_1+theme(plot.margin = unit(c(0.1,0.13,0.1,0.03), 'cm')),
-                  p3_1+theme(plot.margin = unit(c(0.1,0.13,0.1,0.03), 'cm')),
-                  p4_1+theme(plot.margin = unit(c(0.1,0.13,0.1,0.03), 'cm')),
-                  labels = c("A", "B", "C","D","E","F","G","H"), 
-                  font.label = list(size = 12, color = "black", face = "bold", family = NULL),
-                  label.x = .032,label.y = 1.02,
-                  ncol = 4, nrow = 2,align = "v",   ##"v"ç«–ç›´å¯¹é½
-                  widths = c(4,4,4,4), heights = c(3.2,3.45),
-                  common.legend=FALSE);figure
+setwd('D:/¹¤×÷Ä¿Â¼/202409/Manuscript_kai/Talk_20250503/Data and Code/Fig_S14')
 
-
-
-
-setwd('D:/å·¥ä½œç›®å½•/202409/Manuscript_kai/Talk_20250503/Data and Code/Fig_S14')
-ggsave("N2O+N2 production_new_20250721.pdf",figure, height = 5, width = 11)
+ggsave("N2_N2O ratio with moisture gradient_new.pdf", p, width =10, height =3.5) 
